@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Smash — Badminton Rankings & Scoreboard" },
       { name: "description", content: "Track matches, rankings, and doubles chemistry for your badminton group." },
-      { name: "theme-color", content: "#0a0a0f" },
+      { name: "theme-color", content: "#f5fbf5" },
       { property: "og:title", content: "Smash — Badminton Rankings" },
       { property: "og:description", content: "Track matches, rankings, and doubles chemistry for your badminton group." },
       { property: "og:type", content: "website" },
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -127,7 +127,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Outlet />
-        <Toaster richColors theme="dark" position="top-center" />
+        <Toaster richColors theme="light" position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
   );
