@@ -1,4 +1,5 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/app/AppShell";
 
@@ -8,6 +9,10 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthGate() {
   const { user, loading } = useAuth();
+  const nav = useNavigate();
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/login" });
+  }, [loading, user, nav]);
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center text-muted-foreground text-sm">
@@ -16,7 +21,7 @@ function AuthGate() {
     );
   }
   if (!user) {
-    throw redirect({ to: "/login" });
+    return null;
   }
   return (
     <AppShell>
