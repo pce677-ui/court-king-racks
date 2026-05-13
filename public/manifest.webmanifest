@@ -1,0 +1,15 @@
+{
+  "name": "Smash — Badminton Rankings",
+  "short_name": "Smash",
+  "description": "Track matches, rankings, and doubles chemistry for your badminton group.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
