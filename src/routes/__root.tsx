@@ -78,10 +78,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Smash — Badminton Rankings & Scoreboard" },
       { name: "description", content: "Track matches, rankings, and doubles chemistry for your badminton group." },
       { name: "theme-color", content: "#f5fbf5" },
-      { property: "og:title", content: "Smash — Badminton Rankings" },
+      { property: "og:title", content: "Smash — Badminton Rankings & Scoreboard" },
       { property: "og:description", content: "Track matches, rankings, and doubles chemistry for your badminton group." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Smash — Badminton Rankings & Scoreboard" },
+      { name: "twitter:description", content: "Track matches, rankings, and doubles chemistry for your badminton group." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fee5f134-631c-4b00-8423-96869c2120dc/id-preview-f5f8ce85--1d016064-bb18-480e-8dce-30cd6d852e3e.lovable.app-1778697233037.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fee5f134-631c-4b00-8423-96869c2120dc/id-preview-f5f8ce85--1d016064-bb18-480e-8dce-30cd6d852e3e.lovable.app-1778697233037.png" },
     ],
     links: [
       {
