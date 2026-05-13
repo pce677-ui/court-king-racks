@@ -14,16 +14,201 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          match_type: Database["public"]["Enums"]["match_type"]
+          notes: string | null
+          played_at: string
+          points_delta_a: number
+          points_delta_b: number
+          score_a: number
+          score_b: number
+          team_a_p1: string
+          team_a_p2: string | null
+          team_b_p1: string
+          team_b_p2: string | null
+          winner_side: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          match_type: Database["public"]["Enums"]["match_type"]
+          notes?: string | null
+          played_at?: string
+          points_delta_a?: number
+          points_delta_b?: number
+          score_a: number
+          score_b: number
+          team_a_p1: string
+          team_a_p2?: string | null
+          team_b_p1: string
+          team_b_p2?: string | null
+          winner_side: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          match_type?: Database["public"]["Enums"]["match_type"]
+          notes?: string | null
+          played_at?: string
+          points_delta_a?: number
+          points_delta_b?: number
+          score_a?: number
+          score_b?: number
+          team_a_p1?: string
+          team_a_p2?: string | null
+          team_b_p1?: string
+          team_b_p2?: string | null
+          winner_side?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_team_a_p1_fkey"
+            columns: ["team_a_p1"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_a_p2_fkey"
+            columns: ["team_a_p2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_p1_fkey"
+            columns: ["team_b_p1"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team_b_p2_fkey"
+            columns: ["team_b_p2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string
+          full_name: string
+          height_cm: number | null
+          id: string
+          ranking_points: number
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string
+          full_name: string
+          height_cm?: number | null
+          id: string
+          ranking_points?: number
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          created_at?: string
+          full_name?: string
+          height_cm?: number | null
+          id?: string
+          ranking_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ranking_history: {
+        Row: {
+          created_at: string
+          delta: number
+          id: string
+          match_id: string | null
+          player_id: string
+          points_after: number
+          points_before: number
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: string
+          match_id?: string | null
+          player_id: string
+          points_after: number
+          points_before: number
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: string
+          match_id?: string | null
+          player_id?: string
+          points_after?: number
+          points_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_history_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "player"
+      match_type: "singles" | "doubles"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +335,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "player"],
+      match_type: ["singles", "doubles"],
+    },
   },
 } as const
