@@ -115,22 +115,26 @@ function NewMatch() {
     // Update each player's points + write ranking history
     const sideAPlayers = [a1, ...(type === "doubles" ? [a2] : [])];
     const sideBPlayers = [b1, ...(type === "doubles" ? [b2] : [])];
-    const updates: Promise<unknown>[] = [];
+    const updates: Array<Promise<unknown>> = [];
 
     const apply = (pid: string, delta: number) => {
       const before = byId[pid].ranking_points;
       const after = before + delta;
       updates.push(
-        supabase.from("profiles").update({ ranking_points: after }).eq("id", pid),
+        Promise.resolve(
+          supabase.from("profiles").update({ ranking_points: after }).eq("id", pid),
+        ),
       );
       updates.push(
-        supabase.from("ranking_history").insert({
-          player_id: pid,
-          match_id: match.id,
-          points_before: before,
-          points_after: after,
-          delta,
-        }),
+        Promise.resolve(
+          supabase.from("ranking_history").insert({
+            player_id: pid,
+            match_id: match.id,
+            points_before: before,
+            points_after: after,
+            delta,
+          }),
+        ),
       );
     };
     sideAPlayers.forEach((p) => apply(p, preview.deltaA));
