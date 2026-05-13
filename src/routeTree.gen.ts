@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as AuthenticatedMeRouteImport } from './routes/_authenticated.me'
 import { Route as AuthenticatedMatchesRouteImport } from './routes/_authenticated.matches'
+import { Route as AuthenticatedPlayersPlayerIdRouteImport } from './routes/_authenticated.players.$playerId'
 import { Route as AuthenticatedMatchesNewRouteImport } from './routes/_authenticated.matches.new'
 
 const SignupRoute = SignupRouteImport.update({
@@ -46,6 +47,12 @@ const AuthenticatedMatchesRoute = AuthenticatedMatchesRouteImport.update({
   path: '/matches',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPlayersPlayerIdRoute =
+  AuthenticatedPlayersPlayerIdRouteImport.update({
+    id: '/players/$playerId',
+    path: '/players/$playerId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMatchesNewRoute = AuthenticatedMatchesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/matches': typeof AuthenticatedMatchesRouteWithChildren
   '/me': typeof AuthenticatedMeRoute
   '/matches/new': typeof AuthenticatedMatchesNewRoute
+  '/players/$playerId': typeof AuthenticatedPlayersPlayerIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/me': typeof AuthenticatedMeRoute
   '/': typeof AuthenticatedIndexRoute
   '/matches/new': typeof AuthenticatedMatchesNewRoute
+  '/players/$playerId': typeof AuthenticatedPlayersPlayerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +86,27 @@ export interface FileRoutesById {
   '/_authenticated/me': typeof AuthenticatedMeRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/matches/new': typeof AuthenticatedMatchesNewRoute
+  '/_authenticated/players/$playerId': typeof AuthenticatedPlayersPlayerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup' | '/matches' | '/me' | '/matches/new'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/matches'
+    | '/me'
+    | '/matches/new'
+    | '/players/$playerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/signup' | '/matches' | '/me' | '/' | '/matches/new'
+  to:
+    | '/login'
+    | '/signup'
+    | '/matches'
+    | '/me'
+    | '/'
+    | '/matches/new'
+    | '/players/$playerId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -92,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/me'
     | '/_authenticated/'
     | '/_authenticated/matches/new'
+    | '/_authenticated/players/$playerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -144,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMatchesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/players/$playerId': {
+      id: '/_authenticated/players/$playerId'
+      path: '/players/$playerId'
+      fullPath: '/players/$playerId'
+      preLoaderRoute: typeof AuthenticatedPlayersPlayerIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/matches/new': {
       id: '/_authenticated/matches/new'
       path: '/new'
@@ -169,12 +201,14 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMatchesRoute: typeof AuthenticatedMatchesRouteWithChildren
   AuthenticatedMeRoute: typeof AuthenticatedMeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedPlayersPlayerIdRoute: typeof AuthenticatedPlayersPlayerIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMatchesRoute: AuthenticatedMatchesRouteWithChildren,
   AuthenticatedMeRoute: AuthenticatedMeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedPlayersPlayerIdRoute: AuthenticatedPlayersPlayerIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -189,3 +223,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
