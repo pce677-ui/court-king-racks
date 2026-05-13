@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -93,10 +93,12 @@ function Leaderboard() {
           const wr = total ? Math.round((r.wins / total) * 100) : 0;
           const isMe = r.id === user?.id;
           return (
-            <div
+            <Link
               key={r.id}
+              to="/players/$playerId"
+              params={{ playerId: r.id }}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 transition-colors",
+                "flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 transition-colors hover:bg-primary/5",
                 isMe && "bg-primary/5",
               )}
             >
@@ -130,7 +132,7 @@ function Leaderboard() {
                   pts
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
