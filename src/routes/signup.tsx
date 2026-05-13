@@ -31,9 +31,8 @@ function SignupPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    await supabase.auth.signOut();
-    toast.success("Account created — please sign in");
-    nav({ to: "/login" });
+    toast.success("Welcome!");
+    nav({ to: "/" });
   };
 
   return (
