@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as AuthenticatedMatchesRouteImport } from './routes/_authenticated.matches'
+import { Route as AuthenticatedMatchesNewRouteImport } from './routes/_authenticated.matches.new'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -39,32 +40,40 @@ const AuthenticatedMatchesRoute = AuthenticatedMatchesRouteImport.update({
   path: '/matches',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMatchesNewRoute = AuthenticatedMatchesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedMatchesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/matches': typeof AuthenticatedMatchesRoute
+  '/matches': typeof AuthenticatedMatchesRouteWithChildren
+  '/matches/new': typeof AuthenticatedMatchesNewRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/matches': typeof AuthenticatedMatchesRoute
+  '/matches': typeof AuthenticatedMatchesRouteWithChildren
   '/': typeof AuthenticatedIndexRoute
+  '/matches/new': typeof AuthenticatedMatchesNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/_authenticated/matches': typeof AuthenticatedMatchesRoute
+  '/_authenticated/matches': typeof AuthenticatedMatchesRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/matches/new': typeof AuthenticatedMatchesNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup' | '/matches'
+  fullPaths: '/' | '/login' | '/signup' | '/matches' | '/matches/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/signup' | '/matches' | '/'
+  to: '/login' | '/signup' | '/matches' | '/' | '/matches/new'
   id:
     | '__root__'
     | '/_authenticated'
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/matches'
     | '/_authenticated/'
+    | '/_authenticated/matches/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,16 +127,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMatchesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/matches/new': {
+      id: '/_authenticated/matches/new'
+      path: '/new'
+      fullPath: '/matches/new'
+      preLoaderRoute: typeof AuthenticatedMatchesNewRouteImport
+      parentRoute: typeof AuthenticatedMatchesRoute
+    }
   }
 }
 
+interface AuthenticatedMatchesRouteChildren {
+  AuthenticatedMatchesNewRoute: typeof AuthenticatedMatchesNewRoute
+}
+
+const AuthenticatedMatchesRouteChildren: AuthenticatedMatchesRouteChildren = {
+  AuthenticatedMatchesNewRoute: AuthenticatedMatchesNewRoute,
+}
+
+const AuthenticatedMatchesRouteWithChildren =
+  AuthenticatedMatchesRoute._addFileChildren(AuthenticatedMatchesRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedMatchesRoute: typeof AuthenticatedMatchesRoute
+  AuthenticatedMatchesRoute: typeof AuthenticatedMatchesRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedMatchesRoute: AuthenticatedMatchesRoute,
+  AuthenticatedMatchesRoute: AuthenticatedMatchesRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
