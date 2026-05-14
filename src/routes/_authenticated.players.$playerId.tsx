@@ -42,6 +42,7 @@ function PlayerPage() {
           .select(
             "id,match_type,played_at,team_a_p1,team_a_p2,team_b_p1,team_b_p2,winner_side,points_delta_a,points_delta_b,score_a,score_b",
           )
+          .eq("status", "published")
           .or(
             `team_a_p1.eq.${playerId},team_a_p2.eq.${playerId},team_b_p1.eq.${playerId},team_b_p2.eq.${playerId}`,
           )
