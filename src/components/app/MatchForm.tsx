@@ -99,9 +99,9 @@ export function MatchForm({
   }, [a1, a2, b1, b2, scoreA, scoreB, type, byId]);
 
   const validate = (forPublish: boolean): string | null => {
+    if (!a1 || !b1) return "Pick at least one player on each side";
+    if (type === "doubles" && forPublish && (!a2 || !b2)) return "Pick all four players";
     if (forPublish) {
-      if (!a1 || !b1) return "Pick both sides";
-      if (type === "doubles" && (!a2 || !b2)) return "Pick all four players";
       const sA = Number(scoreA), sB = Number(scoreB);
       if (Number.isNaN(sA) || Number.isNaN(sB) || sA < 0 || sB < 0) return "Invalid scores";
       if (sA === sB) return "Scores can't tie";
@@ -120,9 +120,9 @@ export function MatchForm({
     const winner: "A" | "B" = sA >= sB ? "A" : "B";
     const payload = {
       match_type: type,
-      team_a_p1: a1 || null,
+      team_a_p1: a1,
       team_a_p2: type === "doubles" ? (a2 || null) : null,
-      team_b_p1: b1 || null,
+      team_b_p1: b1,
       team_b_p2: type === "doubles" ? (b2 || null) : null,
       score_a: Number.isNaN(sA) ? 0 : sA,
       score_b: Number.isNaN(sB) ? 0 : sB,
