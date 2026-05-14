@@ -26,6 +26,7 @@ export type Database = {
           points_delta_b: number
           score_a: number
           score_b: number
+          status: string
           team_a_p1: string
           team_a_p2: string | null
           team_b_p1: string
@@ -43,6 +44,7 @@ export type Database = {
           points_delta_b?: number
           score_a: number
           score_b: number
+          status?: string
           team_a_p1: string
           team_a_p2?: string | null
           team_b_p1: string
@@ -60,6 +62,7 @@ export type Database = {
           points_delta_b?: number
           score_a?: number
           score_b?: number
+          status?: string
           team_a_p1?: string
           team_a_p2?: string | null
           team_b_p1?: string

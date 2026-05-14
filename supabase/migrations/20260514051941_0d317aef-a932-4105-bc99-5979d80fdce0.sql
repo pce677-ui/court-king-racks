@@ -1,0 +1,2 @@
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published'));
+CREATE INDEX IF NOT EXISTS idx_matches_status ON public.matches(status);
