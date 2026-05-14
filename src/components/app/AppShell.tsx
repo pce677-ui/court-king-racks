@@ -15,8 +15,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur-xl bg-background/70">
+    <div className="min-h-screen flex flex-col text-foreground">
+      <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur-xl bg-background/80">
         <div className="mx-auto max-w-3xl px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
             <span
@@ -61,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-5 pb-24">{children}</main>
 
-      <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 backdrop-blur-xl bg-background/80">
+      <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 backdrop-blur-xl bg-background/85">
         <div className="mx-auto max-w-3xl grid grid-cols-3">
           {NAV.map((n) => {
             const active = n.to === "/" ? path === "/" : path.startsWith(n.to);

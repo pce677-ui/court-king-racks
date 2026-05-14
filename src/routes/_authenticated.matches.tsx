@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/matches")({
@@ -25,6 +25,7 @@ type MatchRow = {
   team_a_p2: string | null;
   team_b_p1: string;
   team_b_p2: string | null;
+  status: "draft" | "published";
 };
 
 function MatchesPage() {
@@ -88,8 +89,40 @@ function MatchesPage() {
         </div>
       )}
 
+      {isAdmin && matches.some((m) => m.status === "draft") && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Drafts
+          </h2>
+          <div className="space-y-2">
+            {matches.filter((m) => m.status === "draft").map((m) => (
+              <div key={m.id} className="rounded-xl border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-3">
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-amber-700">
+                  <span>{m.match_type} · draft · {format(new Date(m.played_at), "MMM d, HH:mm")}</span>
+                  <div className="flex items-center gap-2">
+                    <Link to="/matches/$matchId/edit" params={{ matchId: m.id }}
+                      className="hover:text-foreground" aria-label="Edit draft">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Link>
+                    <button onClick={() => remove(m.id)}
+                      className="hover:text-destructive" aria-label="Delete">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
+                  <div className="truncate">{team(m.team_a_p1, m.team_a_p2) || "—"}</div>
+                  <div className="font-mono tabular-nums px-2">{m.score_a} : {m.score_b}</div>
+                  <div className="text-right truncate">{team(m.team_b_p1, m.team_b_p2) || "—"}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="space-y-2">
-        {matches.map((m) => {
+        {matches.filter((m) => m.status === "published").map((m) => {
           const winA = m.winner_side === "A";
           return (
             <div key={m.id} className="rounded-xl border border-border/60 bg-card p-3">

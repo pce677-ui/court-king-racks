@@ -29,7 +29,8 @@ function Leaderboard() {
       .order("ranking_points", { ascending: false });
     const { data: matches } = await supabase
       .from("matches")
-      .select("team_a_p1,team_a_p2,team_b_p1,team_b_p2,winner_side");
+      .select("team_a_p1,team_a_p2,team_b_p1,team_b_p2,winner_side")
+      .eq("status", "published");
     const stats = new Map<string, { w: number; l: number }>();
     matches?.forEach((m) => {
       const a = [m.team_a_p1, m.team_a_p2].filter(Boolean) as string[];
