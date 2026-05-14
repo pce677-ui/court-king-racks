@@ -22,20 +22,20 @@ export const Route = createFileRoute("/_authenticated/matches/new")({
 });
 
 type Player = { id: string; full_name: string; ranking_points: number };
-type Slot = "a1" | "a2" | "b1" | "b2";
+type SlotKey = "a1" | "a2" | "b1" | "b2";
 
 function NewMatch() {
   const { isAdmin, user } = useAuth();
   const nav = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
   const [type, setType] = useState<"singles" | "doubles">("singles");
-  const [slots, setSlots] = useState<Record<Slot, string>>({ a1: "", a2: "", b1: "", b2: "" });
+  const [slots, setSlots] = useState<Record<SlotKey, string>>({ a1: "", a2: "", b1: "", b2: "" });
   const [scoreA, setScoreA] = useState("21");
   const [scoreB, setScoreB] = useState("19");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
-  const [dragOver, setDragOver] = useState<Slot | null>(null);
+  const [dragOver, setDragOver] = useState<SlotKey | null>(null);
 
   useEffect(() => {
     supabase
@@ -55,9 +55,9 @@ function NewMatch() {
       .filter((p) => !q || p.full_name.toLowerCase().includes(q));
   }, [players, used, query]);
 
-  const setSlot = (s: Slot, id: string) => setSlots((prev) => ({ ...prev, [s]: id }));
+  const setSlot = (s: SlotKey, id: string) => setSlots((prev) => ({ ...prev, [s]: id }));
 
-  const onDrop = (s: Slot) => (e: React.DragEvent) => {
+  const onDrop = (s: SlotKey) => (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(null);
     const id = e.dataTransfer.getData("text/player-id");
@@ -65,7 +65,7 @@ function NewMatch() {
     // If already in another slot, move it
     setSlots((prev) => {
       const next = { ...prev };
-      (Object.keys(next) as Slot[]).forEach((k) => { if (next[k] === id) next[k] = ""; });
+      (Object.keys(next) as SlotKey[]).forEach((k) => { if (next[k] === id) next[k] = ""; });
       next[s] = id;
       return next;
     });
@@ -163,9 +163,9 @@ function NewMatch() {
     nav({ to: "/matches" });
   };
 
-  const slotLabel = (s: Slot) => (s === "a1" || s === "b1" ? "Player 1" : "Player 2");
+  const slotLabel = (s: SlotKey) => (s === "a1" || s === "b1" ? "Player 1" : "Player 2");
 
-  const Slot = ({ s }: { s: Slot }) => {
+  const SlotBox = ({ s }: { s: SlotKey }) => {
     const id = slots[s];
     const p = id ? byId[id] : null;
     const active = dragOver === s;
@@ -285,8 +285,8 @@ function NewMatch() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-primary">Side A</Label>
-            <Slot s="a1" />
-            {type === "doubles" && <Slot s="a2" />}
+            <SlotBox s="a1" />
+            {type === "doubles" && <SlotBox s="a2" />}
             <Input
               inputMode="numeric"
               type="number"
@@ -298,8 +298,8 @@ function NewMatch() {
           </div>
           <div className="space-y-2">
             <Label>Side B</Label>
-            <Slot s="b1" />
-            {type === "doubles" && <Slot s="b2" />}
+            <SlotBox s="b1" />
+            {type === "doubles" && <SlotBox s="b2" />}
             <Input
               inputMode="numeric"
               type="number"
