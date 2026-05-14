@@ -97,3 +97,27 @@ export function partnerChemistry(matches: AnyMatch[], uid: string): PartnerStat[
   }
   return Array.from(map.values()).sort((a, b) => b.matches - a.matches);
 }
+
+export type OpponentStat = {
+  opponentId: string;
+  matches: number;
+  wins: number;
+  losses: number;
+  winRate: number; // 0..100 from this player's perspective
+};
+
+export function opponentRecord(matches: AnyMatch[], uid: string): OpponentStat[] {
+  const map = new Map<string, OpponentStat>();
+  for (const m of matches) {
+    const won = playerWon(m, uid);
+    if (won === null) continue;
+    for (const opp of opponentsOf(m, uid)) {
+      const s = map.get(opp) ?? { opponentId: opp, matches: 0, wins: 0, losses: 0, winRate: 0 };
+      s.matches += 1;
+      if (won) s.wins += 1; else s.losses += 1;
+      s.winRate = Math.round((s.wins / s.matches) * 100);
+      map.set(opp, s);
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.matches - a.matches);
+}

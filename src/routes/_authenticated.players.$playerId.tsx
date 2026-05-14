@@ -5,6 +5,7 @@ import { RankingChart } from "@/components/app/RankingChart";
 import {
   computeStreaks,
   partnerChemistry,
+  opponentRecord,
   playerWon,
   type AnyMatch,
 } from "@/lib/stats";
@@ -68,6 +69,7 @@ function PlayerPage() {
 
   const streak = useMemo(() => computeStreaks(matches, playerId), [matches, playerId]);
   const chemistry = useMemo(() => partnerChemistry(matches, playerId), [matches, playerId]);
+  const opponents = useMemo(() => opponentRecord(matches, playerId), [matches, playerId]);
 
   if (!profile) {
     return <div className="text-sm text-muted-foreground">Loading…</div>;
@@ -75,6 +77,8 @@ function PlayerPage() {
 
   const best = chemistry.filter((c) => c.matches >= 2).sort((a, b) => b.winRate - a.winRate)[0];
   const worst = chemistry.filter((c) => c.matches >= 2).sort((a, b) => a.winRate - b.winRate)[0];
+  const toughest = opponents.filter((o) => o.matches >= 2).sort((a, b) => a.winRate - b.winRate)[0];
+  const favorite = opponents.filter((o) => o.matches >= 2).sort((a, b) => b.winRate - a.winRate)[0];
 
   return (
     <div className="space-y-5">
@@ -161,6 +165,58 @@ function PlayerPage() {
                   </span>
                   <span className="w-12 text-right text-sm font-medium tabular-nums text-primary">
                     {c.winRate}%
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          Head-to-head
+        </h2>
+        {opponents.length === 0 ? (
+          <div className="rounded-xl border border-border/60 bg-card p-4 text-xs text-muted-foreground">
+            No matches yet.
+          </div>
+        ) : (
+          <>
+            {(toughest || favorite) && (
+              <div className="grid grid-cols-2 gap-3">
+                {toughest && (
+                  <Highlight
+                    label="Toughest opponent"
+                    name={names[toughest.opponentId] ?? "—"}
+                    sub={`${toughest.winRate}% over ${toughest.matches}`}
+                    tone="bad"
+                  />
+                )}
+                {favorite && favorite.opponentId !== toughest?.opponentId && (
+                  <Highlight
+                    label="Favorite matchup"
+                    name={names[favorite.opponentId] ?? "—"}
+                    sub={`${favorite.winRate}% over ${favorite.matches}`}
+                    tone="good"
+                  />
+                )}
+              </div>
+            )}
+            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+              {opponents.map((o) => (
+                <Link
+                  key={o.opponentId}
+                  to="/players/$playerId"
+                  params={{ playerId: o.opponentId }}
+                  className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 last:border-0 hover:bg-primary/5 transition-colors"
+                >
+                  <span className="flex-1 truncate text-sm">{names[o.opponentId] ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {o.wins}W · {o.losses}L
+                  </span>
+                  <span className="w-12 text-right text-sm font-medium tabular-nums text-primary">
+                    {o.winRate}%
                   </span>
                 </Link>
               ))}
