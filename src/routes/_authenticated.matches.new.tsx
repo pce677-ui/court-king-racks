@@ -15,26 +15,27 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { computeRankingDelta, teamRating } from "@/lib/ranking";
+import { X, GripVertical, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/matches/new")({
   component: NewMatch,
 });
 
 type Player = { id: string; full_name: string; ranking_points: number };
+type SlotKey = "a1" | "a2" | "b1" | "b2";
 
 function NewMatch() {
   const { isAdmin, user } = useAuth();
   const nav = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
   const [type, setType] = useState<"singles" | "doubles">("singles");
-  const [a1, setA1] = useState<string>("");
-  const [a2, setA2] = useState<string>("");
-  const [b1, setB1] = useState<string>("");
-  const [b2, setB2] = useState<string>("");
+  const [slots, setSlots] = useState<Record<SlotKey, string>>({ a1: "", a2: "", b1: "", b2: "" });
   const [scoreA, setScoreA] = useState("21");
   const [scoreB, setScoreB] = useState("19");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const [dragOver, setDragOver] = useState<SlotKey | null>(null);
 
   useEffect(() => {
     supabase
@@ -45,6 +46,32 @@ function NewMatch() {
   }, []);
 
   const byId = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p])), [players]);
+  const used = useMemo(() => new Set(Object.values(slots).filter(Boolean)), [slots]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return players
+      .filter((p) => !used.has(p.id))
+      .filter((p) => !q || p.full_name.toLowerCase().includes(q));
+  }, [players, used, query]);
+
+  const setSlot = (s: SlotKey, id: string) => setSlots((prev) => ({ ...prev, [s]: id }));
+
+  const onDrop = (s: SlotKey) => (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(null);
+    const id = e.dataTransfer.getData("text/player-id");
+    if (!id) return;
+    // If already in another slot, move it
+    setSlots((prev) => {
+      const next = { ...prev };
+      (Object.keys(next) as SlotKey[]).forEach((k) => { if (next[k] === id) next[k] = ""; });
+      next[s] = id;
+      return next;
+    });
+  };
+
+  const a1 = slots.a1, a2 = slots.a2, b1 = slots.b1, b2 = slots.b2;
 
   const preview = useMemo(() => {
     if (!a1 || !b1) return null;
@@ -68,8 +95,6 @@ function NewMatch() {
   const validate = (): string | null => {
     if (!a1 || !b1) return "Pick both sides";
     if (type === "doubles" && (!a2 || !b2)) return "Pick all four players";
-    const all = [a1, b1, ...(type === "doubles" ? [a2, b2] : [])];
-    if (new Set(all).size !== all.length) return "A player can't appear twice";
     const sA = Number(scoreA);
     const sB = Number(scoreB);
     if (Number.isNaN(sA) || Number.isNaN(sB) || sA < 0 || sB < 0) return "Invalid scores";
@@ -87,7 +112,6 @@ function NewMatch() {
     const sB = Number(scoreB);
     const winner: "A" | "B" = sA > sB ? "A" : "B";
 
-    // Insert match
     const { data: match, error: insErr } = await supabase
       .from("matches")
       .insert({
@@ -112,7 +136,6 @@ function NewMatch() {
       return toast.error(insErr?.message ?? "Could not save match");
     }
 
-    // Update each player's points + write ranking history
     const sideAPlayers = [a1, ...(type === "doubles" ? [a2] : [])];
     const sideBPlayers = [b1, ...(type === "doubles" ? [b2] : [])];
     const updates: Array<Promise<unknown>> = [];
@@ -121,18 +144,12 @@ function NewMatch() {
       const before = byId[pid].ranking_points;
       const after = before + delta;
       updates.push(
-        Promise.resolve(
-          supabase.from("profiles").update({ ranking_points: after }).eq("id", pid),
-        ),
+        Promise.resolve(supabase.from("profiles").update({ ranking_points: after }).eq("id", pid)),
       );
       updates.push(
         Promise.resolve(
           supabase.from("ranking_history").insert({
-            player_id: pid,
-            match_id: match.id,
-            points_before: before,
-            points_after: after,
-            delta,
+            player_id: pid, match_id: match.id, points_before: before, points_after: after, delta,
           }),
         ),
       );
@@ -142,43 +159,76 @@ function NewMatch() {
 
     await Promise.all(updates);
     setBusy(false);
-    toast.success("Match recorded");
+    toast.success("Match published");
     nav({ to: "/matches" });
   };
 
-  const renderPlayerSelect = (
-    value: string,
-    set: (v: string) => void,
-    placeholder: string,
-    exclude: string[],
-  ) => (
-    <Select value={value} onValueChange={set}>
-      <SelectTrigger>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {players
-          .filter((p) => !exclude.includes(p.id) || p.id === value)
-          .map((p) => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.full_name} · {Math.round(p.ranking_points)}
-            </SelectItem>
-          ))}
-      </SelectContent>
-    </Select>
-  );
+  const slotLabel = (s: SlotKey) => (s === "a1" || s === "b1" ? "Player 1" : "Player 2");
 
-  const used = (skip: string) =>
-    [a1, a2, b1, b2].filter((x) => x && x !== skip) as string[];
+  const SlotBox = ({ s }: { s: SlotKey }) => {
+    const id = slots[s];
+    const p = id ? byId[id] : null;
+    const active = dragOver === s;
+    return (
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(s); }}
+        onDragLeave={() => setDragOver((cur) => (cur === s ? null : cur))}
+        onDrop={onDrop(s)}
+        className={
+          "min-h-12 rounded-lg border-2 border-dashed px-3 py-2 transition-colors " +
+          (active
+            ? "border-primary bg-primary/10"
+            : p
+              ? "border-primary/40 bg-card border-solid"
+              : "border-border/70 bg-muted/30")
+        }
+      >
+        {p ? (
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">{p.full_name}</div>
+              <div className="text-[10px] text-muted-foreground tabular-nums">
+                {Math.round(p.ranking_points)} pts
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSlot(s, "")}
+              className="text-muted-foreground hover:text-destructive"
+              aria-label="Remove"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground">{slotLabel(s)} — drop or pick</span>
+            <Select value="" onValueChange={(v) => setSlot(s, v)}>
+              <SelectTrigger className="h-7 w-28 text-xs">
+                <SelectValue placeholder="Pick" />
+              </SelectTrigger>
+              <SelectContent>
+                {players.filter((pl) => !used.has(pl.id)).map((pl) => (
+                  <SelectItem key={pl.id} value={pl.id}>{pl.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">New match</h1>
-        <p className="text-sm text-muted-foreground">Record a result. Ranking updates instantly.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Record match</h1>
+        <p className="text-sm text-muted-foreground">
+          Drag players into a side, set the score, and publish.
+        </p>
       </div>
 
-      <form onSubmit={submit} className="space-y-5 rounded-2xl border border-border/60 bg-card p-5">
+      <form onSubmit={submit} className="space-y-5 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
         <div className="space-y-1.5">
           <Label>Type</Label>
           <Select value={type} onValueChange={(v) => setType(v as "singles" | "doubles")}>
@@ -192,11 +242,51 @@ function NewMatch() {
           </Select>
         </div>
 
+        {/* Player pool */}
+        <div className="space-y-2">
+          <Label>Players</Label>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name…"
+              className="pl-8 h-9"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 rounded-lg border border-border/60 bg-muted/30 p-2 min-h-[3rem]">
+            {filtered.length === 0 ? (
+              <span className="text-xs text-muted-foreground px-1 py-1.5">
+                {used.size === players.length ? "All players placed." : "No matches."}
+              </span>
+            ) : (
+              filtered.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/player-id", p.id);
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-2.5 py-1 text-xs cursor-grab active:cursor-grabbing hover:border-primary/60 hover:bg-primary/5 transition"
+                >
+                  <GripVertical className="w-3 h-3 text-muted-foreground group-hover:text-primary" />
+                  <span className="font-medium">{p.full_name}</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {Math.round(p.ranking_points)}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-primary">Side A</Label>
-            {renderPlayerSelect(a1, setA1, "Player 1", used(a1))}
-            {type === "doubles" && renderPlayerSelect(a2, setA2, "Player 2", used(a2))}
+            <SlotBox s="a1" />
+            {type === "doubles" && <SlotBox s="a2" />}
             <Input
               inputMode="numeric"
               type="number"
@@ -208,8 +298,8 @@ function NewMatch() {
           </div>
           <div className="space-y-2">
             <Label>Side B</Label>
-            {renderPlayerSelect(b1, setB1, "Player 1", used(b1))}
-            {type === "doubles" && renderPlayerSelect(b2, setB2, "Player 2", used(b2))}
+            <SlotBox s="b1" />
+            {type === "doubles" && <SlotBox s="b2" />}
             <Input
               inputMode="numeric"
               type="number"
@@ -243,20 +333,14 @@ function NewMatch() {
               )}
             </div>
             <div className="mt-1 flex justify-between font-mono">
-              <span>
-                A: {preview.deltaA > 0 ? "+" : ""}
-                {preview.deltaA}
-              </span>
-              <span>
-                B: {preview.deltaB > 0 ? "+" : ""}
-                {preview.deltaB}
-              </span>
+              <span>A: {preview.deltaA > 0 ? "+" : ""}{preview.deltaA}</span>
+              <span>B: {preview.deltaB > 0 ? "+" : ""}{preview.deltaB}</span>
             </div>
           </div>
         )}
 
         <Button type="submit" className="w-full h-11" disabled={busy}>
-          {busy ? "Saving…" : "Record match"}
+          {busy ? "Publishing…" : "Publish match"}
         </Button>
       </form>
     </div>
