@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Trophy, Crown, Medal } from "lucide-react";
+import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LeaderboardChart } from "@/components/app/LeaderboardChart";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Leaderboard,
@@ -15,6 +16,7 @@ type Row = {
   ranking_points: number;
   wins: number;
   losses: number;
+  trend: number; // sum of last up-to-3 deltas
 };
 
 function Leaderboard() {
@@ -31,6 +33,17 @@ function Leaderboard() {
       .from("matches")
       .select("team_a_p1,team_a_p2,team_b_p1,team_b_p2,winner_side")
       .eq("status", "published");
+    const { data: history } = await supabase
+      .from("ranking_history")
+      .select("player_id,delta,created_at")
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    const trends = new Map<string, number[]>();
+    history?.forEach((h) => {
+      const arr = trends.get(h.player_id) ?? [];
+      if (arr.length < 3) arr.push(Number(h.delta));
+      trends.set(h.player_id, arr);
+    });
     const stats = new Map<string, { w: number; l: number }>();
     matches?.forEach((m) => {
       const a = [m.team_a_p1, m.team_a_p2].filter(Boolean) as string[];
@@ -55,6 +68,7 @@ function Leaderboard() {
         ranking_points: Number(p.ranking_points),
         wins: stats.get(p.id)?.w ?? 0,
         losses: stats.get(p.id)?.l ?? 0,
+        trend: (trends.get(p.id) ?? []).reduce((a, b) => a + b, 0),
       })),
     );
     setLoading(false);
@@ -93,6 +107,8 @@ function Leaderboard() {
           const total = r.wins + r.losses;
           const wr = total ? Math.round((r.wins / total) * 100) : 0;
           const isMe = r.id === user?.id;
+          const trendUp = r.trend > 0.5;
+          const trendDown = r.trend < -0.5;
           return (
             <Link
               key={r.id}
@@ -126,6 +142,27 @@ function Leaderboard() {
                   {r.wins}W · {r.losses}L · {wr}% WR
                 </div>
               </div>
+              <div
+                className={cn(
+                  "flex items-center gap-1 text-xs font-medium tabular-nums px-1.5 py-0.5 rounded-md",
+                  trendUp && "text-emerald-600 bg-emerald-500/10",
+                  trendDown && "text-red-600 bg-red-500/10",
+                  !trendUp && !trendDown && "text-muted-foreground",
+                )}
+                title="Sum of last 3 ranking changes"
+              >
+                {trendUp ? (
+                  <TrendingUp className="w-3.5 h-3.5" />
+                ) : trendDown ? (
+                  <TrendingDown className="w-3.5 h-3.5" />
+                ) : (
+                  <Minus className="w-3.5 h-3.5" />
+                )}
+                <span>
+                  {r.trend > 0 ? "+" : ""}
+                  {Math.round(r.trend)}
+                </span>
+              </div>
               <div className="text-right">
                 <div className="font-semibold tabular-nums">
                   {Math.round(r.ranking_points)}
@@ -138,6 +175,18 @@ function Leaderboard() {
           );
         })}
       </div>
+
+      {!loading && rows.length > 0 && (
+        <section className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-sm font-semibold tracking-tight">Ranking progression</h2>
+              <p className="text-[11px] text-muted-foreground">Top 7 players over time</p>
+            </div>
+          </div>
+          <LeaderboardChart players={rows} />
+        </section>
+      )}
     </div>
   );
 }
