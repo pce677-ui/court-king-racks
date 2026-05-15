@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Trophy, ListOrdered, User2, LogOut, Plus, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ const NAV = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, isAdmin, signOut } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col text-foreground">
@@ -29,11 +30,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <Link to="/matches/new">
-                <Button size="sm" className="h-8 rounded-full">
-                  <Plus className="w-4 h-4 mr-1" /> Match
-                </Button>
-              </Link>
+              <Button
+                size="sm"
+                className="h-8 rounded-full"
+                onClick={() => navigate({ to: "/matches/new" })}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Match
+              </Button>
             )}
             <Button
               size="icon"
