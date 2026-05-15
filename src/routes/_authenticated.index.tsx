@@ -98,8 +98,9 @@ function Leaderboard() {
               key={r.id}
               to="/players/$playerId"
               params={{ playerId: r.id }}
+              style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 transition-colors hover:bg-primary/5",
+                "flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 hover:bg-primary/5 hover:pl-5 animate-row-in",
                 isMe && "bg-primary/5",
               )}
             >

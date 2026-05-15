@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/matches")({
+export const Route = createFileRoute("/_authenticated/matches/")({
   component: MatchesPage,
 });
 
