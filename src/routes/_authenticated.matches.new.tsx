@@ -7,8 +7,12 @@ export const Route = createFileRoute("/_authenticated/matches/new")({
 });
 
 function NewMatch() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading } = useAuth();
   const nav = useNavigate();
+
+  if (loading) {
+    return <div className="text-sm text-muted-foreground">Checking access…</div>;
+  }
 
   if (!isAdmin) {
     return (
