@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/me")({
   component: MePage,
@@ -54,20 +53,6 @@ function MePage() {
           {Math.round(profile.ranking_points)}
         </div>
       </div>
-
-      <Link
-        to="/players/$playerId"
-        params={{ playerId: user.id }}
-        className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 hover:border-primary/40 transition-colors"
-      >
-        <div>
-          <div className="text-sm font-medium">View full stats</div>
-          <div className="text-xs text-muted-foreground">
-            Chart, streaks, and doubles chemistry
-          </div>
-        </div>
-        <BarChart3 className="w-5 h-5 text-primary" />
-      </Link>
 
       <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
         <h2 className="font-medium">Profile</h2>
