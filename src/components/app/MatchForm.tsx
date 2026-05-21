@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { computeRankingDelta, teamRating } from "@/lib/ranking";
+import { buildTargetMap, TARGET_BONUS } from "@/lib/targets";
 import { X, GripVertical, Search } from "lucide-react";
 
 type Player = { id: string; full_name: string; ranking_points: number };
@@ -151,8 +152,17 @@ export function MatchForm({
     if (target === "published" && preview && matchId) {
       const sideA = [a1, ...(type === "doubles" ? [a2] : [])];
       const sideB = [b1, ...(type === "doubles" ? [b2] : [])];
+      const winners = winner === "A" ? sideA : sideB;
+      const losers = winner === "A" ? sideB : sideA;
+      const targetMap = buildTargetMap(players);
+      const loserSet = new Set(losers);
+      const bonusFor = (pid: string) => {
+        const t = targetMap.get(pid);
+        return t && loserSet.has(t) ? TARGET_BONUS : 0;
+      };
       const ops: Array<Promise<unknown>> = [];
-      const apply = (pid: string, delta: number) => {
+      const apply = (pid: string, baseDelta: number, bonus = 0) => {
+        const delta = baseDelta + bonus;
         const before = byId[pid].ranking_points;
         const after = before + delta;
         ops.push(Promise.resolve(supabase.from("profiles").update({ ranking_points: after }).eq("id", pid)));
@@ -160,9 +170,13 @@ export function MatchForm({
           player_id: pid, match_id: matchId, points_before: before, points_after: after, delta,
         })));
       };
-      sideA.forEach((p) => apply(p, preview.deltaA));
-      sideB.forEach((p) => apply(p, preview.deltaB));
+      sideA.forEach((p) => apply(p, preview.deltaA, winner === "A" ? bonusFor(p) : 0));
+      sideB.forEach((p) => apply(p, preview.deltaB, winner === "B" ? bonusFor(p) : 0));
       await Promise.all(ops);
+      const bonusWinners = winners.filter((p) => bonusFor(p) > 0).map((p) => byId[p]?.full_name).filter(Boolean);
+      if (bonusWinners.length) {
+        toast.success(`Target bonus +${TARGET_BONUS} for ${bonusWinners.join(", ")}`);
+      }
     }
 
     setBusy(null);
