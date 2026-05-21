@@ -312,14 +312,22 @@ export function MatchForm({
         <div className="rounded-xl bg-muted/40 border border-border/60 p-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Predicted change on publish</span>
-            {preview.closeMatch && (
-              <span className="text-[10px] uppercase tracking-wider text-primary">close-match protected</span>
-            )}
+            <div className="flex gap-1">
+              {preview.closeMatch && (
+                <span className="text-[10px] uppercase tracking-wider text-primary">close match</span>
+              )}
+              {preview.upset && (
+                <span className="text-[10px] uppercase tracking-wider text-emerald-600">upset ×{preview.upsetMultiplier.toFixed(2)}</span>
+              )}
+            </div>
           </div>
           <div className="mt-1 flex justify-between font-mono">
             <span>A: {preview.deltaA > 0 ? "+" : ""}{preview.deltaA}</span>
             <span>B: {preview.deltaB > 0 ? "+" : ""}{preview.deltaB}</span>
           </div>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            +{TARGET_BONUS} target bonus is added at publish time for any winner whose personal target is on the losing side.
+          </p>
         </div>
       )}
 
