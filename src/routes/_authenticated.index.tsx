@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Trophy, Crown, Medal, TrendingUp, TrendingDown, Minus, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LeaderboardChart } from "@/components/app/LeaderboardChart";
+import { getTargetFor, TARGET_BONUS } from "@/lib/targets";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Leaderboard,
@@ -95,6 +96,41 @@ function Leaderboard() {
         </div>
         <Trophy className="w-5 h-5 text-primary" />
       </div>
+
+      {(() => {
+        if (!user || rows.length < 2) return null;
+        const me = rows.find((r) => r.id === user.id);
+        if (!me) return null;
+        const target = getTargetFor(user.id, rows);
+        if (!target) return null;
+        const gap = Math.round(target.ranking_points - me.ranking_points);
+        const isTop = me.id === rows[0].id;
+        return (
+          <div className="rounded-2xl bg-white border border-border/60 p-4 shadow-sm flex items-start gap-3 text-slate-900">
+            <div className="rounded-xl bg-primary/10 p-2 text-primary shrink-0">
+              <Target className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+                Your goal
+              </div>
+              <div className="mt-0.5 text-sm">
+                {isTop ? "Defend #1 against" : "Beat"}{" "}
+                <span className="font-semibold">{target.full_name}</span>{" "}
+                <span className="text-slate-500">
+                  ({Math.round(target.ranking_points)} pts
+                  {gap > 0 ? ` · ${gap} ahead` : ""})
+                </span>
+              </div>
+              <div className="mt-1 text-xs text-slate-600">
+                Win a match against them and earn a{" "}
+                <span className="font-semibold text-emerald-600">+{TARGET_BONUS} bonus</span>{" "}
+                on top of normal ranking points.
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
         {loading && <div className="p-6 text-sm text-muted-foreground">Loading…</div>}
