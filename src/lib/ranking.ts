@@ -17,6 +17,8 @@ export type RankOutput = {
   expectedA: number;
   marginFactor: number;
   closeMatch: boolean;
+  upset: boolean; // underdog won
+  upsetMultiplier: number; // 1 if no upset, up to ~1.6 for big upsets
 };
 
 const K_BASE = 32;
@@ -39,6 +41,24 @@ export function computeRankingDelta({ ratingA, ratingB, scoreA, scoreB }: RankIn
   let deltaA = K_BASE * marginFactor * (actualA - expectedA);
   let deltaB = -deltaA;
 
+  // Upset amplification: when the lower-ranked side wins, scale the swing up.
+  // When the higher-ranked side wins (expected outcome), scale the swing down
+  // so the underdog loses fewer points and the favorite gains fewer points.
+  const ratingGap = Math.abs(ratingA - ratingB);
+  const favoriteA = ratingA > ratingB;
+  const winnerIsUnderdog = ratingGap > 25 && ((winnerA && !favoriteA) || (!winnerA && favoriteA));
+  const winnerIsFavorite = ratingGap > 25 && ((winnerA && favoriteA) || (!winnerA && !favoriteA));
+  let upsetMultiplier = 1;
+  if (winnerIsUnderdog) {
+    upsetMultiplier = 1 + Math.min(0.6, ratingGap / 300);
+    deltaA *= upsetMultiplier;
+    deltaB *= upsetMultiplier;
+  } else if (winnerIsFavorite) {
+    const shield = Math.max(0.45, 1 - ratingGap / 500);
+    deltaA *= shield;
+    deltaB *= shield;
+  }
+
   if (closeMatch) {
     // Close-match protection: shrink loser's loss to almost nothing,
     // and trim the winner's gain. Loser may even gain a tiny bit.
@@ -58,6 +78,8 @@ export function computeRankingDelta({ ratingA, ratingB, scoreA, scoreB }: RankIn
     expectedA,
     marginFactor,
     closeMatch,
+    upset: winnerIsUnderdog,
+    upsetMultiplier,
   };
 }
 
