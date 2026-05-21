@@ -23,7 +23,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 // Court dimensions (SVG units). 13.4m x 6.1m, scaled.
 const W = 610;
@@ -553,6 +552,3 @@ export function StrategyBoard() {
     </div>
   );
 }
-
-// satisfy cn import even if unused inline
-void cn;
