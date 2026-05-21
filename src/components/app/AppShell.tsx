@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Trophy, ListOrdered, User2, LogOut, Plus, Sparkles, BarChart3 } from "lucide-react";
+import { Trophy, ListOrdered, User2, LogOut, Plus, Sparkles, BarChart3, Target } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ const NAV = [
   { to: "/" as const, label: "Ranking", icon: Trophy },
   { to: "/matches" as const, label: "Matches", icon: ListOrdered },
   { to: "/stats" as const, label: "Stats", icon: BarChart3 },
+  { to: "/strategy" as const, label: "Strategy", icon: Target },
   { to: "/me" as const, label: "Me", icon: User2 },
 ];
 
@@ -66,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-5 pb-24">{children}</main>
 
       <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 backdrop-blur-xl bg-background/85">
-        <div className="mx-auto max-w-3xl grid grid-cols-4">
+        <div className="mx-auto max-w-3xl grid grid-cols-5">
           {NAV.map((n) => {
             const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
             const Icon = n.icon;
